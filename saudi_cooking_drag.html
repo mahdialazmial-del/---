@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🍳 مطبخ الست</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #1a0f00;
+  --surface: #2a1a08;
+  --tile: #3a2410;
+  --gold: #f0a030;
+  --gold2: #ffd060;
+  --orange: #e06010;
+  --red: #cc3010;
+  --cream: #fdf0d8;
+  --green: #40c060;
+  --blue: #4090d0;
+  --text: #fdf0d8;
+  --muted: #a08060;
+  --stove-top: #222;
+  --stove-body: #333;
+  --flame-inner: #ffee44;
+  --flame-outer: #ff6600;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;}
+body{
+  font-family:'Tajawal',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  display:flex;flex-direction:column;
+  background-image:
+    repeating-linear-gradient(0deg,rgba(255,255,255,0.015) 0px,rgba(255,255,255,0.015) 1px,transparent 1px,transparent 40px),
+    repeating-linear-gradient(90deg,rgba(255,255,255,0.015) 0px,rgba(255,255,255,0.015) 1px,transparent 1px,transparent 40px);
+}
+
+/* ── HEADER ── */
+#hdr{
+  background:linear-gradient(90deg,#3a1a00,#5a2a00,#3a1a00);
+  padding:8px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:2px solid var(--gold);
+  flex-shrink:0;
+}
+#hdr h1{font-size:1.3rem;font-weight:900;color:var(--gold2);letter-spacing:1px;}
+#hdr .score-box{display:flex;gap:14px;font-size:0.9rem;font-weight:700;}
+#hdr .score-box span{color:var(--gold);}
+
+/* ── RECIPE SELECTOR ── */
+#recipe-bar{
+  background:var(--surface);
+  padding:8px 12px;
+  display:flex;gap:8px;align-items:center;
+  overflow-x:auto;
+  border-bottom:1px solid #4a2a10;
+  flex-shrink:0;
+  scrollbar-width:none;
+}
+#recipe-bar::-webkit-scrollbar{display:none;}
+#recipe-bar label{color:var(--muted);font-size:0.85rem;white-space:nowrap;flex-shrink:0;}
+.rbtn{
+  background:var(--tile);border:1.5px solid #5a3a10;
+  color:var(--text);padding:6px 14px;border-radius:20px;
+  font-family:'Tajawal',sans-serif;font-size:0.85rem;font-weight:700;
+  cursor:pointer;white-space:nowrap;flex-shrink:0;
+  transition:all .2s;
+}
+.rbtn:hover,.rbtn.active{background:var(--gold);color:#1a0800;border-color:var(--gold);}
+.rbtn.done{border-color:var(--green);color:var(--green);}
+
+/* ── MAIN ── */
+#main{
+  flex:1;display:flex;gap:0;overflow:hidden;
+  min-height:0;
+}
+
+/* ── INGREDIENTS PANEL ── */
+#ing-panel{
+  width:120px;flex-shrink:0;
+  background:var(--surface);
+  border-left:1px solid #4a2a10;
+  display:flex;flex-direction:column;
+  padding:8px 6px;
+  gap:6px;
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:#4a2a10 transparent;
+}
+#ing-panel h3{font-size:0.8rem;color:var(--muted);text-align:center;margin-bottom:2px;}
+.ing-item{
+  background:var(--tile);
+  border:1.5px solid #5a3a10;
+  border-radius:12px;
+  padding:8px 4px;
+  text-align:center;
+  cursor:grab;
+  transition:all .15s;
+  user-select:none;
+  position:relative;
+}
+.ing-item:active{cursor:grabbing;}
+.ing-item:hover{border-color:var(--gold);background:#4a2a10;transform:scale(1.05);}
+.ing-item .iemoji{font-size:1.8rem;display:block;}
+.ing-item .iname{font-size:0.7rem;color:var(--muted);margin-top:2px;line-height:1.2;}
+.ing-item.added{opacity:.35;pointer-events:none;}
+
+/* ── KITCHEN STAGE ── */
+#stage{
+  flex:1;
+  position:relative;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+  align-items:center;
+  justify-content:flex-end;
+  padding-bottom:10px;
+  min-width:0;
+}
+
+/* COUNTER TOP */
+#counter{
+  width:100%;height:28px;
+  background:linear-gradient(180deg,#8b6040,#6b4020);
+  border-top:3px solid #a07050;
+  flex-shrink:0;
+}
+
+/* STOVE */
+#stove{
+  width:min(340px,90%);
+  flex-shrink:0;
+  position:relative;
+  margin-bottom:4px;
+}
+#stove-body{
+  background:linear-gradient(180deg,#444 0%,#333 60%,#222 100%);
+  border-radius:14px 14px 8px 8px;
+  border:3px solid #555;
+  padding:14px 14px 10px;
+  box-shadow:0 8px 30px rgba(0,0,0,.7),inset 0 1px 0 #666;
+  position:relative;
+}
+
+/* BURNERS */
+#burners{
+  display:flex;gap:16px;justify-content:space-around;
+  margin-bottom:10px;
+}
+.burner{
+  display:flex;flex-direction:column;align-items:center;
+  gap:4px;position:relative;
+}
+.burner-ring{
+  width:64px;height:64px;
+  background:radial-gradient(circle,#1a1a1a 38%,#2a2a2a 38%,#2a2a2a 50%,#1a1a1a 50%);
+  border-radius:50%;
+  border:3px solid #444;
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  transition:all .2s;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.5);
+}
+.burner-ring.on{
+  border-color:#ff6600;
+  box-shadow:0 0 20px #ff660066,inset 0 2px 6px rgba(0,0,0,.5);
+}
+.burner-label{font-size:0.65rem;color:var(--muted);font-weight:700;}
+
+/* FLAMES */
+.flame-wrap{
+  position:absolute;top:-2px;left:50%;transform:translateX(-50%);
+  width:60px;pointer-events:none;
+  display:flex;justify-content:center;gap:2px;
+  opacity:0;transition:opacity .3s;
+}
+.burner-ring.on .flame-wrap{opacity:1;}
+.flame{
+  width:10px;
+  border-radius:50% 50% 30% 30%;
+  animation:flicker 0.25s ease-in-out infinite alternate;
+}
+.flame.big{height:28px;background:linear-gradient(180deg,var(--flame-inner),var(--flame-outer));}
+.flame.mid{height:20px;background:linear-gradient(180deg,#ffcc22,#ff4400);margin-top:8px;}
+.flame.small{height:14px;background:linear-gradient(180deg,#ffdd44,#ff5500);margin-top:14px;}
+@keyframes flicker{
+  0%{transform:scaleX(1) scaleY(1) rotate(-1deg);}
+  100%{transform:scaleX(0.88) scaleY(1.1) rotate(1deg);}
+}
+
+/* KNOBS */
+#knobs{
+  display:flex;justify-content:space-around;
+  padding:0 10px;
+}
+.knob-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.knob{
+  width:28px;height:28px;
+  background:radial-gradient(circle at 35% 35%,#777,#333);
+  border-radius:50%;border:2px solid #555;
+  cursor:pointer;
+  transition:transform .2s,box-shadow .2s;
+  position:relative;
+  box-shadow:0 2px 6px rgba(0,0,0,.5);
+}
+.knob::after{
+  content:'';
+  position:absolute;top:3px;left:50%;transform:translateX(-50%);
+  width:3px;height:10px;
+  background:#aaa;border-radius:2px;
+  transition:transform .3s;
+}
+.knob.on{box-shadow:0 0 12px #ff6600,0 2px 6px rgba(0,0,0,.5);}
+.knob.on::after{transform:translateX(-50%) rotate(40deg);}
+.knob-label{font-size:0.6rem;color:var(--muted);}
+
+/* DROP ZONES (on burners) */
+.drop-zone{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:58px;height:58px;
+  border-radius:50%;
+  border:2px dashed transparent;
+  transition:border-color .2s,background .2s;
+  z-index:5;
+  pointer-events:auto;
+}
+.drop-zone.dragover{
+  border-color:var(--gold);
+  background:rgba(240,160,48,.15);
+}
+
+/* POT ON BURNER */
+.pot-on-burner{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  z-index:10;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;
+}
+.pot-svg{width:58px;height:50px;}
+
+/* ADDED INGREDIENTS DISPLAY */
+#added-list{
+  position:absolute;top:8px;right:8px;
+  display:flex;flex-direction:column;gap:4px;
+  z-index:20;
+  pointer-events:none;
+}
+.added-badge{
+  background:rgba(0,0,0,.7);
+  border:1px solid var(--gold);
+  border-radius:20px;
+  padding:3px 10px;
+  font-size:0.75rem;
+  display:flex;align-items:center;gap:4px;
+  animation:slideIn .3s ease;
+}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+
+/* STEP GUIDE */
+#step-guide{
+  position:absolute;top:8px;left:8px;right:140px;
+  background:rgba(0,0,0,.75);
+  border:1.5px solid var(--gold);
+  border-radius:12px;
+  padding:8px 12px;
+  z-index:20;
+  pointer-events:none;
+}
+#step-guide .step-num{font-size:0.7rem;color:var(--gold);font-weight:700;}
+#step-guide .step-txt{font-size:0.9rem;font-weight:700;color:var(--cream);margin-top:2px;}
+#step-guide .step-hint{font-size:0.75rem;color:var(--muted);margin-top:2px;}
+
+/* HEAT INDICATOR */
+#heat-bar-wrap{
+  position:absolute;bottom:50px;left:8px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  z-index:20;pointer-events:none;
+}
+#heat-label{font-size:0.65rem;color:var(--muted);font-weight:700;}
+#heat-bar-bg{
+  width:12px;height:80px;
+  background:#1a0a00;
+  border-radius:6px;
+  border:1.5px solid #5a3a10;
+  overflow:hidden;
+  position:relative;
+}
+#heat-fill{
+  position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(180deg,#ff4400,#ffcc00);
+  height:0%;
+  transition:height .4s ease;
+  border-radius:4px;
+}
+#heat-num{font-size:0.7rem;color:var(--gold);font-weight:700;}
+
+/* STEAM PARTICLES */
+.steam-p{
+  position:absolute;
+  width:6px;height:6px;
+  background:rgba(255,255,255,.5);
+  border-radius:50%;
+  pointer-events:none;
+  animation:steamRise 1.5s ease-in-out forwards;
+}
+@keyframes steamRise{
+  0%{opacity:.7;transform:translateY(0) scale(1);}
+  100%{opacity:0;transform:translateY(-60px) scale(3);}
+}
+
+/* BUBBLE */
+.bubble{
+  position:absolute;
+  border-radius:50%;
+  background:rgba(255,220,100,.4);
+  pointer-events:none;
+  animation:bubbleUp .8s ease forwards;
+}
+@keyframes bubbleUp{
+  0%{opacity:1;transform:translateY(0) scale(1);}
+  100%{opacity:0;transform:translateY(-20px) scale(0.3);}
+}
+
+/* DRAGGING GHOST */
+#drag-ghost{
+  position:fixed;
+  pointer-events:none;
+  z-index:9999;
+  font-size:2.2rem;
+  opacity:.85;
+  transform:translate(-50%,-50%);
+  display:none;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.5));
+}
+
+/* RESULT OVERLAY */
+#result-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.85);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  z-index:200;
+  text-align:center;padding:20px;
+}
+#result-overlay.show{display:flex;}
+#result-overlay .big-emoji{font-size:5rem;animation:popIn .5s ease;}
+@keyframes popIn{0%{transform:scale(0);}70%{transform:scale(1.2);}100%{transform:scale(1);}}
+#result-overlay h2{font-size:1.8rem;color:var(--gold2);font-weight:900;margin:12px 0 6px;}
+#result-overlay p{color:var(--muted);font-size:1rem;margin-bottom:20px;}
+#result-overlay .stars{font-size:2.5rem;margin-bottom:16px;}
+.btn{
+  padding:12px 28px;border-radius:30px;
+  font-family:'Tajawal',sans-serif;font-size:1rem;font-weight:700;
+  cursor:pointer;border:none;transition:all .2s;
+  margin:4px;
+}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--orange));color:#1a0800;}
+.btn-outline{background:transparent;border:2px solid var(--gold);color:var(--gold);}
+
+/* TOAST */
+#toast{
+  position:fixed;bottom:80px;left:50%;
+  transform:translateX(-50%) translateY(60px);
+  background:#1a0800;border:1.5px solid var(--gold);
+  color:var(--gold2);padding:10px 22px;border-radius:30px;
+  font-size:.9rem;font-weight:700;
+  transition:transform .3s;z-index:300;pointer-events:none;white-space:nowrap;
+}
+#toast.show{transform:translateX(-50%) translateY(0);}
+
+/* SCORE POPUP */
+.score-pop{
+  position:fixed;pointer-events:none;z-index:400;
+  font-size:1.4rem;font-weight:900;color:var(--gold2);
+  animation:scoreFly 1s ease forwards;
+  text-shadow:0 2px 8px rgba(0,0,0,.8);
+}
+@keyframes scoreFly{
+  0%{opacity:1;transform:translateY(0) scale(1);}
+  100%{opacity:0;transform:translateY(-60px) scale(1.4);}
+}
+
+/* PROGRESS DOTS */
+#progress-dots{
+  display:flex;gap:6px;justify-content:center;
+  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  z-index:20;pointer-events:none;
+}
+.pdot{
+  width:10px;height:10px;border-radius:50%;
+  background:#3a2a10;border:1.5px solid #5a3a10;
+  transition:all .3s;
+}
+.pdot.done{background:var(--green);border-color:var(--green);}
+.pdot.active{background:var(--gold);border-color:var(--gold);animation:pulse .8s infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.3);}}
+
+/* MOBILE TOUCH FIXES */
+@media(max-width:480px){
+  #ing-panel{width:90px;}
+  .burner-ring{width:54px;height:54px;}
+  .flame.big{height:22px;}
+  .drop-zone{width:50px;height:50px;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="hdr">
+  <h1>🍳 مطبخ الست</h1>
+  <div class="score-box">
+    <span>⭐ <b id="s-stars">0</b></span>
+    <span>🪙 <b id="s-score">0</b></span>
+  </div>
+</div>
+
+<!-- RECIPE BAR -->
+<div id="recipe-bar">
+  <label>الوصفة:</label>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- INGREDIENTS -->
+  <div id="ing-panel">
+    <h3>🧺 المكونات</h3>
+    <!-- filled by JS -->
+  </div>
+
+  <!-- STAGE -->
+  <div id="stage">
+
+    <!-- STEP GUIDE -->
+    <div id="step-guide">
+      <div class="step-num">الخطوة <span id="sg-num">1</span></div>
+      <div class="step-txt" id="sg-txt">اشعل الغاز أولاً!</div>
+      <div class="step-hint" id="sg-hint">اضغط على زر الغاز لإشعاله 🔥</div>
+    </div>
+
+    <!-- ADDED LIST -->
+    <div id="added-list"></div>
+
+    <!-- HEAT BAR -->
+    <div id="heat-bar-wrap">
+      <div id="heat-label">🌡️ حرارة</div>
+      <div id="heat-bar-bg"><div id="heat-fill"></div></div>
+      <div id="heat-num">0°</div>
+    </div>
+
+    <!-- PROGRESS DOTS -->
+    <div id="progress-dots"></div>
+
+    <!-- STOVE -->
+    <div id="stove">
+      <div id="stove-body">
+        <div id="burners">
+          <!-- Left burner -->
+          <div class="burner" id="burner-0">
+            <div class="burner-ring" id="ring-0">
+              <div class="flame-wrap">
+                <div class="flame small"></div>
+                <div class="flame big"></div>
+                <div class="flame mid"></div>
+                <div class="flame big"></div>
+                <div class="flame small"></div>
+              </div>
+              <div class="drop-zone" id="drop-0"></div>
+              <!-- pot placed here by JS -->
+            </div>
+            <div class="burner-label">موقد ١</div>
+          </div>
+          <!-- Right burner -->
+          <div class="burner" id="burner-1">
+            <div class="burner-ring" id="ring-1">
+              <div class="flame-wrap">
+                <div class="flame small"></div>
+                <div class="flame big"></div>
+                <div class="flame mid"></div>
+                <div class="flame big"></div>
+                <div class="flame small"></div>
+              </div>
+              <div class="drop-zone" id="drop-1"></div>
+            </div>
+            <div class="burner-label">موقد ٢</div>
+          </div>
+        </div>
+        <!-- KNOBS -->
+        <div id="knobs">
+          <div class="knob-wrap">
+            <div class="knob" id="knob-0" onclick="toggleBurner(0)"></div>
+            <div class="knob-label">موقد ١</div>
+          </div>
+          <div class="knob-wrap">
+            <div class="knob" id="knob-1" onclick="toggleBurner(1)"></div>
+            <div class="knob-label">موقد ٢</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="counter"></div>
+  </div>
+</div>
+
+<!-- DRAG GHOST -->
+<div id="drag-ghost"></div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- RESULT OVERLAY -->
+<div id="result-overlay">
+  <div class="big-emoji" id="ro-emoji">🏆</div>
+  <h2 id="ro-title">ممتاز!</h2>
+  <div class="stars" id="ro-stars">⭐⭐⭐</div>
+  <p id="ro-msg">الوصفة اكتملت بنجاح!</p>
+  <div>
+    <button class="btn btn-gold" id="ro-next" onclick="nextRecipe()">التالية ▶</button>
+    <button class="btn btn-outline" onclick="openMenu()">القائمة 🏠</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════
+//   RECIPES DATA
+// ══════════════════════════════════
+const RECIPES = [
+  {
+    id:'qahwa', name:'قهوة سعودية', emoji:'☕',
+    burner:0,
+    steps:[
+      {id:'water',  text:'ضع الماء في الدلة',         emoji:'💧', hint:'اسحب الماء وأفلته على الموقد',      needsHeat:false, needsBurnerOn:false},
+      {id:'ignite', text:'اشعل الغاز تحت الدلة',      emoji:'🔥', hint:'اضغط على زر الموقد لإشعاله',        needsHeat:false, needsBurnerOn:true,  isBurnerStep:true},
+      {id:'coffee', text:'أضف البن بعد ما يغلي الماء', emoji:'🫘', hint:'انتظر الحرارة توصل 80° ثم أضف البن', needsHeat:true,  minTemp:80, needsBurnerOn:false},
+      {id:'cardamom',text:'أضف الهيل',                emoji:'🌿', hint:'اسحب الهيل على الدلة',               needsHeat:false, needsBurnerOn:false},
+      {id:'saffron', text:'أضف الزعفران',              emoji:'🧡', hint:'اسحب الزعفران على الدلة',            needsHeat:false, needsBurnerOn:false},
+    ],
+    ingredients:[
+      {id:'water',    name:'ماء',      emoji:'💧'},
+      {id:'coffee',   name:'بن',       emoji:'🫘'},
+      {id:'cardamom', name:'هيل',      emoji:'🌿'},
+      {id:'saffron',  name:'زعفران',   emoji:'🧡'},
+      {id:'milk',     name:'حليب',     emoji:'🥛', wrong:true},
+      {id:'sugar',    name:'سكر',      emoji:'🍬', wrong:true},
+    ]
+  },
+  {
+    id:'chai', name:'شاي كرك', emoji:'🍵',
+    burner:0,
+    steps:[
+      {id:'water',   text:'ضع الماء في الإبريق',      emoji:'💧', hint:'اسحب الماء على الموقد',           needsHeat:false},
+      {id:'ignite',  text:'اشعل الغاز',               emoji:'🔥', hint:'اضغط زر الموقد',                  needsBurnerOn:true, isBurnerStep:true},
+      {id:'tea',     text:'أضف الشاي',                emoji:'🫖', hint:'انتظر 60° ثم أضف الشاي',          needsHeat:true, minTemp:60},
+      {id:'spices',  text:'أضف الهيل والزنجبيل',      emoji:'🫚', hint:'اسحب التوابل',                    needsHeat:false},
+      {id:'milk',    text:'صبّ الحليب',                emoji:'🥛', hint:'انتظر 90° ثم أضف الحليب',         needsHeat:true, minTemp:90},
+    ],
+    ingredients:[
+      {id:'water',  name:'ماء',           emoji:'💧'},
+      {id:'tea',    name:'شاي',           emoji:'🫖'},
+      {id:'spices', name:'هيل وزنجبيل',  emoji:'🫚'},
+      {id:'milk',   name:'حليب',          emoji:'🥛'},
+      {id:'coffee', name:'بن',            emoji:'🫘', wrong:true},
+      {id:'salt',   name:'ملح',           emoji:'🧂', wrong:true},
+    ]
+  },
+  {
+    id:'shakshouka', name:'شكشوكة', emoji:'🍳',
+    burner:0,
+    steps:[
+      {id:'ignite', text:'اشعل الغاز',             emoji:'🔥', hint:'اضغط زر الموقد أولاً',           needsBurnerOn:true, isBurnerStep:true},
+      {id:'oil',    text:'أضف الزيت في المقلاة',   emoji:'🫙', hint:'اسحب الزيت على الموقد',          needsHeat:false},
+      {id:'onion',  text:'أضف البصل والثوم',        emoji:'🧅', hint:'انتظر 70° ثم أضف البصل',         needsHeat:true, minTemp:70},
+      {id:'tomato', text:'أضف الطماطم',             emoji:'🍅', hint:'اسحب الطماطم',                   needsHeat:false},
+      {id:'spices', text:'أضف البهارات',             emoji:'🌶️', hint:'الكمون والفلفل الأسود',          needsHeat:false},
+      {id:'eggs',   text:'كسر البيض فوق الصلصة',   emoji:'🥚', hint:'انتظر 95° ثم أضف البيض',         needsHeat:true, minTemp:95},
+    ],
+    ingredients:[
+      {id:'oil',    name:'زيت',    emoji:'🫙'},
+      {id:'onion',  name:'بصل وثوم', emoji:'🧅'},
+      {id:'tomato', name:'طماطم', emoji:'🍅'},
+      {id:'spices', name:'بهارات', emoji:'🌶️'},
+      {id:'eggs',   name:'بيض',   emoji:'🥚'},
+      {id:'milk',   name:'حليب',  emoji:'🥛', wrong:true},
+      {id:'sugar',  name:'سكر',   emoji:'🍬', wrong:true},
+    ]
+  },
+  {
+    id:'maasub', name:'معصوب', emoji:'🫓',
+    burner:0,
+    steps:[
+      {id:'ignite', text:'اشعل الغاز',         emoji:'🔥', hint:'اضغط زر الموقد',                     needsBurnerOn:true, isBurnerStep:true},
+      {id:'bread',  text:'أضف الخبز للمقلاة',  emoji:'🫓', hint:'اسحب الخبز',                         needsHeat:false},
+      {id:'banana', text:'أضف الموز المهروس',  emoji:'🍌', hint:'انتظر 65° ثم أضف الموز',             needsHeat:true, minTemp:65},
+      {id:'honey',  text:'صبّ العسل',           emoji:'🍯', hint:'اسحب العسل',                         needsHeat:false},
+      {id:'cream',  text:'أضف القشطة',          emoji:'🥛', hint:'في النهاية أضف القشطة',              needsHeat:false},
+    ],
+    ingredients:[
+      {id:'bread',  name:'خبز رقاق', emoji:'🫓'},
+      {id:'banana', name:'موز',       emoji:'🍌'},
+      {id:'honey',  name:'عسل',       emoji:'🍯'},
+      {id:'cream',  name:'قشطة',      emoji:'🥛'},
+      {id:'salt',   name:'ملح',       emoji:'🧂', wrong:true},
+      {id:'coffee', name:'بن',        emoji:'🫘', wrong:true},
+    ]
+  },
+  {
+    id:'areeka', name:'عريكة', emoji:'🥞',
+    burner:0,
+    steps:[
+      {id:'ignite', text:'اشعل الغاز',          emoji:'🔥', hint:'اضغط زر الموقد',                    needsBurnerOn:true, isBurnerStep:true},
+      {id:'dates',  text:'أضف التمر للقدر',     emoji:'🌴', hint:'اسحب التمر',                         needsHeat:false},
+      {id:'flour',  text:'أضف الدقيق المحمّص',  emoji:'🌾', hint:'انتظر 75° ثم أضف الدقيق',           needsHeat:true, minTemp:75},
+      {id:'ghee',   text:'أضف السمن',            emoji:'🧈', hint:'اسحب السمن',                         needsHeat:false},
+      {id:'honey',  text:'صبّ العسل فوقها',      emoji:'🍯', hint:'اللمسة الأخيرة',                    needsHeat:false},
+    ],
+    ingredients:[
+      {id:'dates',  name:'تمر',  emoji:'🌴'},
+      {id:'flour',  name:'دقيق', emoji:'🌾'},
+      {id:'ghee',   name:'سمن',  emoji:'🧈'},
+      {id:'honey',  name:'عسل',  emoji:'🍯'},
+      {id:'eggs',   name:'بيض',  emoji:'🥚', wrong:true},
+      {id:'milk',   name:'حليب', emoji:'🥛', wrong:true},
+    ]
+  },
+];
+
+// ══════════════════════════════════
+//   STATE
+// ══════════════════════════════════
+let state = {
+  recipeIdx: 0,
+  stepIdx: 0,
+  burners: [false, false],
+  heat: 0,           // 0-100 (mapped to 0-100°)
+  addedIds: [],
+  mistakes: 0,
+  score: 0,
+  stars: 0,
+  completed: [],
+  heatInterval: null,
+  steamInterval: null,
+  potOnBurner: [false, false],
+  waitingForHeat: false,
+};
+
+// Drag state
+let drag = { active:false, emoji:'', id:'', startX:0, startY:0 };
+
+// ══════════════════════════════════
+//   INIT
+// ══════════════════════════════════
+function init() {
+  buildRecipeBar();
+  loadRecipe(0);
+}
+
+function buildRecipeBar() {
+  const bar = document.getElementById('recipe-bar');
+  // keep label
+  RECIPES.forEach((r,i) => {
+    const btn = document.createElement('button');
+    btn.className = 'rbtn' + (i===0?' active':'') + (state.completed.includes(r.id)?' done':'');
+    btn.textContent = r.emoji + ' ' + r.name;
+    btn.id = 'rbtn-'+i;
+    btn.onclick = () => loadRecipe(i);
+    bar.appendChild(btn);
+  });
+}
+
+function loadRecipe(idx) {
+  // reset state
+  clearInterval(state.heatInterval);
+  clearInterval(state.steamInterval);
+  state.recipeIdx = idx;
+  state.stepIdx = 0;
+  state.burners = [false, false];
+  state.heat = 0;
+  state.addedIds = [];
+  state.mistakes = 0;
+  state.waitingForHeat = false;
+  state.potOnBurner = [false, false];
+
+  // update recipe bar
+  document.querySelectorAll('.rbtn').forEach((b,i) => {
+    b.className = 'rbtn' + (i===idx?' active':'') + (state.completed.includes(RECIPES[i].id)?' done':'');
+  });
+
+  const rec = RECIPES[idx];
+
+  // build ingredients
+  buildIngredients(rec);
+
+  // reset burners visual
+  [0,1].forEach(i => {
+    document.getElementById('ring-'+i).classList.remove('on');
+    document.getElementById('knob-'+i).classList.remove('on');
+  });
+
+  // reset heat
+  updateHeatUI();
+
+  // clear added list
+  document.getElementById('added-list').innerHTML = '';
+
+  // clear pots
+  document.querySelectorAll('.pot-on-burner').forEach(p => p.remove());
+
+  // build progress
+  buildProgress(rec);
+
+  // update step guide
+  updateStepGuide();
+
+  // setup drop zones
+  setupDropZones();
+
+  // heat loop
+  state.heatInterval = setInterval(heatTick, 300);
+}
+
+function buildIngredients(rec) {
+  const panel = document.getElementById('ing-panel');
+  panel.innerHTML = '<h3>🧺 المكونات</h3>';
+  // shuffle
+  const items = [...rec.ingredients].sort(() => Math.random()-0.5);
+  items.forEach(ing => {
+    const el = document.createElement('div');
+    el.className = 'ing-item';
+    el.id = 'ing-'+ing.id;
+    el.innerHTML = `<span class="iemoji">${ing.emoji}</span><span class="iname">${ing.name}</span>`;
+    el.dataset.id = ing.id;
+    el.dataset.emoji = ing.emoji;
+    el.dataset.name = ing.name;
+    // Mouse drag
+    el.addEventListener('mousedown', onDragStart);
+    // Touch drag
+    el.addEventListener('touchstart', onTouchStart, {passive:false});
+    panel.appendChild(el);
+  });
+}
+
+function buildProgress(rec) {
+  const cont = document.getElementById('progress-dots');
+  cont.innerHTML = '';
+  rec.steps.forEach((s,i) => {
+    const d = document.createElement('div');
+    d.className = 'pdot' + (i===0?' active':'');
+    d.id = 'pdot-'+i;
+    cont.appendChild(d);
+  });
+}
+
+// ══════════════════════════════════
+//   DRAG & DROP — MOUSE
+// ══════════════════════════════════
+let mouseX=0, mouseY=0;
+
+function onDragStart(e) {
+  e.preventDefault();
+  const el = e.currentTarget;
+  drag.active = true;
+  drag.id = el.dataset.id;
+  drag.emoji = el.dataset.emoji;
+  drag.name = el.dataset.name;
+
+  const ghost = document.getElementById('drag-ghost');
+  ghost.textContent = drag.emoji;
+  ghost.style.display = 'block';
+  ghost.style.left = e.clientX+'px';
+  ghost.style.top = e.clientY+'px';
+
+  document.addEventListener('mousemove', onDragMove);
+  document.addEventListener('mouseup', onDragEnd);
+
+  highlightDropZones(true);
+}
+
+function onDragMove(e) {
+  if (!drag.active) return;
+  const ghost = document.getElementById('drag-ghost');
+  ghost.style.left = e.clientX+'px';
+  ghost.style.top = e.clientY+'px';
+  mouseX = e.clientX; mouseY = e.clientY;
+}
+
+function onDragEnd(e) {
+  if (!drag.active) return;
+  document.getElementById('drag-ghost').style.display = 'none';
+  document.removeEventListener('mousemove', onDragMove);
+  document.removeEventListener('mouseup', onDragEnd);
+  highlightDropZones(false);
+
+  // check drop target
+  const target = document.elementFromPoint(e.clientX, e.clientY);
+  checkDrop(target, e.clientX, e.clientY);
+  drag.active = false;
+}
+
+// ══════════════════════════════════
+//   DRAG & DROP — TOUCH
+// ══════════════════════════════════
+function onTouchStart(e) {
+  e.preventDefault();
+  const el = e.currentTarget;
+  drag.active = true;
+  drag.id = el.dataset.id;
+  drag.emoji = el.dataset.emoji;
+  drag.name = el.dataset.name;
+
+  const t = e.touches[0];
+  const ghost = document.getElementById('drag-ghost');
+  ghost.textContent = drag.emoji;
+  ghost.style.display = 'block';
+  ghost.style.left = t.clientX+'px';
+  ghost.style.top = t.clientY+'px';
+
+  document.addEventListener('touchmove', onTouchMove, {passive:false});
+  document.addEventListener('touchend', onTouchEnd);
+
+  highlightDropZones(true);
+}
+
+function onTouchMove(e) {
+  e.preventDefault();
+  if (!drag.active) return;
+  const t = e.touches[0];
+  const ghost = document.getElementById('drag-ghost');
+  ghost.style.left = t.clientX+'px';
+  ghost.style.top = t.clientY+'px';
+}
+
+function onTouchEnd(e) {
+  if (!drag.active) return;
+  document.getElementById('drag-ghost').style.display = 'none';
+  document.removeEventListener('touchmove', onTouchMove);
+  document.removeEventListener('touchend', onTouchEnd);
+  highlightDropZones(false);
+
+  const t = e.changedTouches[0];
+  const target = document.elementFromPoint(t.clientX, t.clientY);
+  checkDrop(target, t.clientX, t.clientY);
+  drag.active = false;
+}
+
+// ══════════════════════════════════
+//   DROP LOGIC
+// ══════════════════════════════════
+function setupDropZones() {
+  [0,1].forEach(i => {
+    const dz = document.getElementById('drop-'+i);
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  });
+}
+
+function highlightDropZones(on) {
+  document.querySelectorAll('.drop-zone').forEach(dz => {
+    dz.style.border = on ? '2px dashed var(--gold)' : '2px dashed transparent';
+  });
+}
+
+function checkDrop(target, cx, cy) {
+  if (!target) return;
+  // find burner
+  for (let i=0;i<2;i++) {
+    const ring = document.getElementById('ring-'+i);
+    const rect = ring.getBoundingClientRect();
+    if (cx >= rect.left && cx <= rect.right && cy >= rect.top && cy <= rect.bottom) {
+      handleDropOnBurner(i);
+      return;
+    }
+  }
+  // missed
+  showToast('🎯 أفلت المكون فوق الموقد!');
+}
+
+function handleDropOnBurner(burnerIdx) {
+  const rec = RECIPES[state.recipeIdx];
+  const step = rec.steps[state.stepIdx];
+  if (!step) return;
+
+  // burner step (ignite) — no drag needed
+  if (step.isBurnerStep) {
+    showToast('💡 اضغط زر الموقد لإشعاله!');
+    return;
+  }
+
+  // check needs heat
+  if (step.needsHeat && state.heat < (step.minTemp || 80)) {
+    const needed = step.minTemp || 80;
+    showToast(`⏳ انتظر تصل الحرارة ${needed}°!`);
+    document.getElementById('sg-hint').textContent = `🌡️ الحرارة الحالية: ${Math.round(state.heat)}° — تحتاج ${needed}°`;
+    state.waitingForHeat = true;
+    return;
+  }
+
+  // check correct ingredient
+  if (drag.id === step.id) {
+    // CORRECT
+    state.addedIds.push(drag.id);
+    markIngAdded(drag.id);
+    addBadge(drag.emoji, drag.name);
+    placePotEmoji(burnerIdx, drag.emoji);
+    spawnBubbles(burnerIdx);
+    scorePopup('+100', burnerIdx);
+    state.score += 100;
+    state.stepIdx++;
+    updateScoreUI();
+    updateProgress(rec);
+
+    if (state.stepIdx >= rec.steps.length) {
+      setTimeout(() => finishRecipe(), 600);
+    } else {
+      updateStepGuide();
+      state.waitingForHeat = false;
+      showToast('✅ ممتاز! ' + drag.name);
+    }
+  } else {
+    // WRONG
+    state.mistakes++;
+    // check if it's a "wrong" ingredient
+    const ingDef = rec.ingredients.find(x => x.id === drag.id);
+    if (ingDef && ingDef.wrong) {
+      showToast('❌ هذا مو من المكونات الصح!');
+    } else {
+      showToast('❌ مو وقته! اتبع الترتيب الصح.');
+    }
+    document.getElementById('sg-hint').textContent = '💡 ' + step.hint;
+    // shake guide
+    const guide = document.getElementById('step-guide');
+    guide.style.animation = 'none';
+    guide.offsetHeight; // reflow
+    guide.style.animation = 'shake .3s';
+  }
+}
+
+// ══════════════════════════════════
+//   BURNER / GAS
+// ══════════════════════════════════
+function toggleBurner(idx) {
+  const rec = RECIPES[state.recipeIdx];
+  const step = rec.steps[state.stepIdx];
+
+  state.burners[idx] = !state.burners[idx];
+  const on = state.burners[idx];
+
+  document.getElementById('ring-'+idx).classList.toggle('on', on);
+  document.getElementById('knob-'+idx).classList.toggle('on', on);
+
+  if (on) {
+    showToast('🔥 الغاز شاغل!');
+    if (!state.steamInterval) {
+      state.steamInterval = setInterval(() => spawnSteam(idx), 600);
+    }
+  } else {
+    clearInterval(state.steamInterval);
+    state.steamInterval = null;
+    showToast('💨 الغاز مطفي');
+  }
+
+  // check if current step is burner step
+  if (step && step.isBurnerStep && on) {
+    setTimeout(() => {
+      state.stepIdx++;
+      updateProgress(rec);
+      updateStepGuide();
+      state.waitingForHeat = false;
+      scorePopup('+50', idx);
+      state.score += 50;
+      updateScoreUI();
+      if (state.stepIdx >= rec.steps.length) finishRecipe();
+    }, 400);
+  }
+}
+
+// ══════════════════════════════════
+//   HEAT TICK
+// ══════════════════════════════════
+function heatTick() {
+  const anyOn = state.burners.some(b => b);
+  if (anyOn) {
+    state.heat = Math.min(100, state.heat + 1.5);
+  } else {
+    state.heat = Math.max(0, state.heat - 0.8);
+  }
+  updateHeatUI();
+
+  // auto-advance if waiting for heat
+  if (state.waitingForHeat) {
+    const rec = RECIPES[state.recipeIdx];
+    const step = rec.steps[state.stepIdx];
+    if (step && step.needsHeat && state.heat >= (step.minTemp||80)) {
+      state.waitingForHeat = false;
+      document.getElementById('sg-hint').textContent = '✅ الحرارة جاهزة! الآن أضف ' + step.emoji;
+    }
+  }
+}
+
+function updateHeatUI() {
+  const temp = Math.round(state.heat);
+  document.getElementById('heat-fill').style.height = state.heat + '%';
+  document.getElementById('heat-num').textContent = temp + '°';
+  const fill = document.getElementById('heat-fill');
+  if (state.heat > 80) fill.style.background = 'linear-gradient(180deg,#ff2200,#ff6600)';
+  else if (state.heat > 50) fill.style.background = 'linear-gradient(180deg,#ff6600,#ffcc00)';
+  else fill.style.background = 'linear-gradient(180deg,#ffcc00,#ff9900)';
+}
+
+// ══════════════════════════════════
+//   STEP GUIDE
+// ══════════════════════════════════
+function updateStepGuide() {
+  const rec = RECIPES[state.recipeIdx];
+  const step = rec.steps[state.stepIdx];
+  if (!step) return;
+  document.getElementById('sg-num').textContent = state.stepIdx + 1;
+  document.getElementById('sg-txt').textContent = step.emoji + ' ' + step.text;
+  document.getElementById('sg-hint').textContent = step.hint;
+}
+
+function updateProgress(rec) {
+  rec.steps.forEach((s, i) => {
+    const d = document.getElementById('pdot-'+i);
+    if (!d) return;
+    d.className = 'pdot' + (i < state.stepIdx ? ' done' : i === state.stepIdx ? ' active' : '');
+  });
+}
+
+// ══════════════════════════════════
+//   VISUAL FX
+// ══════════════════════════════════
+function addBadge(emoji, name) {
+  const list = document.getElementById('added-list');
+  const b = document.createElement('div');
+  b.className = 'added-badge';
+  b.innerHTML = `${emoji} <span>${name}</span>`;
+  list.appendChild(b);
+  if (list.children.length > 5) list.removeChild(list.children[0]);
+}
+
+function markIngAdded(id) {
+  const el = document.getElementById('ing-'+id);
+  if (el) el.classList.add('added');
+}
+
+function placePotEmoji(burnerIdx, emoji) {
+  const ring = document.getElementById('ring-'+burnerIdx);
+  let pot = ring.querySelector('.pot-on-burner');
+  if (!pot) {
+    pot = document.createElement('div');
+    pot.className = 'pot-on-burner';
+    // draw a simple SVG pot
+    pot.innerHTML = `
+      <svg class="pot-svg" viewBox="0 0 58 50" fill="none">
+        <rect x="4" y="18" width="50" height="28" rx="10" fill="#555" stroke="#888" stroke-width="2"/>
+        <rect x="1" y="14" width="56" height="8" rx="4" fill="#666" stroke="#999" stroke-width="1.5"/>
+        <rect x="10" y="10" width="10" height="6" rx="3" fill="#777"/>
+        <rect x="38" y="10" width="10" height="6" rx="3" fill="#777"/>
+        <text id="pot-contents-${burnerIdx}" x="29" y="38" text-anchor="middle" font-size="14">${emoji}</text>
+      </svg>`;
+    ring.appendChild(pot);
+  } else {
+    const ct = pot.querySelector(`#pot-contents-${burnerIdx}`);
+    if (ct) ct.textContent = emoji;
+  }
+  state.potOnBurner[burnerIdx] = true;
+}
+
+function spawnBubbles(burnerIdx) {
+  const ring = document.getElementById('ring-'+burnerIdx);
+  const rect = ring.getBoundingClientRect();
+  for (let i=0;i<5;i++) {
+    setTimeout(() => {
+      const b = document.createElement('div');
+      b.className = 'bubble';
+      const size = 8+Math.random()*12;
+      b.style.cssText = `width:${size}px;height:${size}px;left:${rect.left+Math.random()*rect.width}px;top:${rect.top+Math.random()*rect.height}px;position:fixed;z-index:100;`;
+      document.body.appendChild(b);
+      setTimeout(() => b.remove(), 800);
+    }, i*80);
+  }
+}
+
+function spawnSteam(burnerIdx) {
+  const ring = document.getElementById('ring-'+burnerIdx);
+  if (!ring) return;
+  const rect = ring.getBoundingClientRect();
+  for (let i=0;i<2;i++) {
+    const s = document.createElement('div');
+    s.className = 'steam-p';
+    s.style.cssText = `left:${rect.left+rect.width/2+(-10+Math.random()*20)}px;top:${rect.top-10}px;position:fixed;z-index:50;`;
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 1500);
+  }
+}
+
+function scorePopup(text, burnerIdx) {
+  const ring = document.getElementById('ring-'+burnerIdx);
+  const rect = ring.getBoundingClientRect();
+  const el = document.createElement('div');
+  el.className = 'score-pop';
+  el.textContent = text;
+  el.style.left = rect.left + rect.width/2 + 'px';
+  el.style.top = rect.top + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+
+// ══════════════════════════════════
+//   FINISH
+// ══════════════════════════════════
+function finishRecipe() {
+  clearInterval(state.heatInterval);
+  clearInterval(state.steamInterval);
+  const rec = RECIPES[state.recipeIdx];
+  if (!state.completed.includes(rec.id)) state.completed.push(rec.id);
+
+  const stars = state.mistakes === 0 ? 3 : state.mistakes <= 2 ? 2 : 1;
+  const bonus = stars * 200;
+  state.score += bonus;
+  state.stars += stars;
+  updateScoreUI();
+
+  document.getElementById('ro-emoji').textContent = stars===3?'🏆':stars===2?'🎉':'👍';
+  document.getElementById('ro-title').textContent = stars===3?'رائع! طباخ محترف!':stars===2?'ممتاز!':'جيد، تقدر أحسن!';
+  document.getElementById('ro-stars').textContent = '⭐'.repeat(stars)+'☆'.repeat(3-stars);
+  document.getElementById('ro-msg').textContent = `حصلت على ${bonus} نقطة إضافية!${state.mistakes>0?' أخطأت '+state.mistakes+' مرة.':' بدون أخطاء!'}`;
+
+  const nextIdx = state.recipeIdx+1;
+  document.getElementById('ro-next').style.display = nextIdx < RECIPES.length ? 'inline-block' : 'none';
+
+  document.getElementById('result-overlay').classList.add('show');
+}
+
+function nextRecipe() {
+  document.getElementById('result-overlay').classList.remove('show');
+  const next = state.recipeIdx + 1;
+  if (next < RECIPES.length) loadRecipe(next);
+  else openMenu();
+}
+
+function openMenu() {
+  document.getElementById('result-overlay').classList.remove('show');
+  loadRecipe(0);
+}
+
+function updateScoreUI() {
+  document.getElementById('s-score').textContent = state.score;
+  document.getElementById('s-stars').textContent = state.stars;
+}
+
+// ══════════════════════════════════
+//   TOAST
+// ══════════════════════════════════
+let toastT;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ══════════════════════════════════
+//   START
+// ══════════════════════════════════
+init();
+</script>
+</body>
+</html>
